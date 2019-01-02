@@ -1,17 +1,30 @@
-package com.example.android.miwok;
+package com.example.android.miwok.fragments;
+
 
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.example.android.miwok.R;
+import com.example.android.miwok.activities.ItemMiwok;
+import com.example.android.miwok.activities.MiwokAdapter;
+
 import java.util.ArrayList;
 
-public class ColorsActivity extends AppCompatActivity {
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class ColorsFragment extends Fragment {
 
     ArrayList<ItemMiwok> colors;
     ListView lista;
@@ -20,15 +33,25 @@ public class ColorsActivity extends AppCompatActivity {
     AudioManager audioManager;
     AudioManager.OnAudioFocusChangeListener onAudioFocusChangeListener;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_colors);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    public ColorsFragment() {
+        // Required empty public constructor
+    }
 
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View rootView =  inflater.inflate(R.layout.fragment_layout, container, false);
+        lista = rootView.findViewById(R.id.list);
+        return rootView;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         initializeData();
-        conectarVistas();
-        miwokAdapter = new MiwokAdapter(this,colors,R.color.category_colors);
+        miwokAdapter = new MiwokAdapter(getActivity(),colors,R.color.category_colors);
         lista.setAdapter(miwokAdapter);
         lista.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -41,7 +64,7 @@ public class ColorsActivity extends AppCompatActivity {
             }
         });
 
-        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
 
 
         onAudioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
@@ -65,11 +88,9 @@ public class ColorsActivity extends AppCompatActivity {
                 }
             }
         };
-
     }
-
     private void reproducirAudio(int recursoAudio){
-        mediaPlayer = MediaPlayer.create(ColorsActivity.this,recursoAudio);
+        mediaPlayer = MediaPlayer.create(getActivity(),recursoAudio);
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
@@ -86,9 +107,6 @@ public class ColorsActivity extends AppCompatActivity {
         if (audioManager != null) audioManager.abandonAudioFocus(onAudioFocusChangeListener);
     }
 
-    private void conectarVistas() {
-        lista = findViewById(R.id.list);
-    }
 
     private void initializeData() {
         colors = new ArrayList<>();
@@ -103,9 +121,24 @@ public class ColorsActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStop() {
+    public void onStop() {
         super.onStop();
+        Log.i("COLORS", "onStop");
         releaseMediaPlayer();
+    }
 
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+
+        // Make sure that we are currently visible
+        if (this.isVisible()) {
+            // If we are becoming invisible, then...
+            if (!isVisibleToUser) {
+                Log.d("COLORS", "No visible.  Detener el audio.");
+                // TODO stop audio playback
+                releaseMediaPlayer();
+            }
+        }
     }
 }

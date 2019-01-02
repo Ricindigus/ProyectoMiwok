@@ -1,4 +1,4 @@
-package com.example.android.miwok;
+package com.example.android.miwok.activities;
 
 public class ItemMiwok {
     String palabra;
